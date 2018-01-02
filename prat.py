@@ -5,6 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import cmath
@@ -23,8 +24,8 @@ def GetPosition(sentence):
 def GetTime(sentence):
     fields = sentence.split(',')
     if (fields[0] == '$IIGLL'):
-        time = float(fields[5][0:2]) * 3600 + (float(fields[5][2:4]) * 60
-                     + (float(fields[5][4:6])))
+        time = datetime.time(int(fields[5][0:2]), int(fields[5][2:4]), 
+                             int(fields[5][4:6]))
         return (time)
 
 def GetGroundVelocity(sentence):
