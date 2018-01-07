@@ -8,6 +8,8 @@ This is a temporary script file.
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+from matplotlib.colors import ListedColormap, BoundaryNorm
 import cmath
 
 def GetPosition(sentence):
@@ -67,23 +69,36 @@ def PlotPlot(title, vector, bearing = False):
     plt.clf()
     fig, ax = plt.subplots(2, sharex=True, num=title)
     fig.suptitle(title)
+    x = np.arange(0, time.size)
+
     angle = np.angle(vector)
     if bearing:
         angle[angle < 0] += 2*np.pi
         unwrappedAngle = np.rad2deg(np.unwrap(angle))
-        ax[0].plot(time, unwrappedAngle)
+        ax[0].plot(x, unwrappedAngle)
         yTicks = ax[0].get_yticks()
         yTicks %= 360
         ax[0].set_yticklabels(list(map(str,yTicks)))
     else:
-        angle = np.rad2deg(np.unwrap(angle))
-#        angle = np.rad2deg(angle)
-        ax[0].plot(time, angle)
+        unwrappedAngle = np.rad2deg(np.unwrap(angle))
+        # select how to color
+        cmap = ListedColormap(['r','g'])
+        norm = BoundaryNorm([0,], cmap.N)
+        # get segments
+        x = np.arange(0, time.size)
+        xy = np.array([x, unwrappedAngle]).T.reshape(-1, 1, 2)
+        segments = np.hstack([xy[:-1], xy[1:]])
+        # make line collection
+        lc = LineCollection(segments, cmap = cmap, norm = norm)
+        lc.set_array(angle) #Use original angles to decide on tack (colour)
+
+        ax[0].add_collection(lc)
+        ax[0].autoscale()
         yTicks = ax[0].get_yticks()
         yTicks -= np.ceil(np.floor(yTicks/180)/2)*360
         ax[0].set_yticklabels(list(map(str,yTicks)))
     # Plot the 'speed'
-    ax[1].plot(time, np.absolute(vector))
+    ax[1].plot(x, np.absolute(vector))
 
 
 position = []
@@ -133,11 +148,11 @@ tide = ground - water
 PlotHist("Geographic Wind Histogram", geographicWind)
 PlotHist("Tide Histogram", tide)
 
-PlotPlot("Water Velocity", water)
-PlotPlot("tide Velocity", tide)
-PlotPlot("Apparent Wind", apparentWind)
+#PlotPlot("Water Velocity", water)
+#PlotPlot("tide Velocity", tide)
+#PlotPlot("Apparent Wind", apparentWind)
 PlotPlot("True Wind", trueWind)
-PlotPlot("Geographic Wind", geographicWind, True)
+#PlotPlot("Geographic Wind", geographicWind, True)
 
 plt.show()
 
