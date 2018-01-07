@@ -63,8 +63,7 @@ def PlotHist(title, vector):
     plt.hist(np.absolute(vector), 100)
 
 def PlotPlot(title, vector, bearing = False):
-#    plt.close(title)
-    plt.figure(title)
+    plt.figure(title)   # makes this figure 'active'
     plt.clf()
     fig, ax = plt.subplots(2, sharex=True, num=title)
     fig.suptitle(title)
@@ -77,7 +76,12 @@ def PlotPlot(title, vector, bearing = False):
         yTicks %= 360
         ax[0].set_yticklabels(list(map(str,yTicks)))
     else:
-        ax[0].plot(time, np.rad2deg(angle))
+        angle = np.rad2deg(np.unwrap(angle))
+#        angle = np.rad2deg(angle)
+        ax[0].plot(time, angle)
+        yTicks = ax[0].get_yticks()
+        yTicks -= np.ceil(np.floor(yTicks/180)/2)*360
+        ax[0].set_yticklabels(list(map(str,yTicks)))
     # Plot the 'speed'
     ax[1].plot(time, np.absolute(vector))
 
