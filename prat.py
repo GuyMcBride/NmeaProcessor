@@ -62,14 +62,20 @@ def PlotHist(title, vector):
     plt.subplot(212)
     plt.hist(np.absolute(vector), 100)
 
-def PlotPlot(title, vector):
-    plt.figure(title)
-    plt.clf()
-    plt.subplot(211)
-    plt.plot(time, np.angle(vector, deg = True))
-    plt.subplot(212)
-    plt.plot(time, np.absolute(vector))
-
+def PlotPlot(title, vector, bearing = False):
+    angle = np.angle(vector)
+    if bearing:
+        angle[angle < 0] += 2*np.pi
+    fig, ax = plt.subplots(2, sharex=True, num=title)
+    fig.suptitle(title)
+    unwrappedAngle = np.rad2deg(np.unwrap(angle))
+    ax[0].plot(time, unwrappedAngle)
+    yTicks = ax[0].get_yticks()
+    yTicks %= 360
+#    plt.yticks(yTicks)
+    ax[0].set_yticklabels(list(map(str,yTicks)))
+#    plt.plot(time, np.rad2deg(angle))
+    ax[1].plot(time, np.absolute(vector))
 
 
 position = []
@@ -123,7 +129,7 @@ PlotPlot("Water Velocity", water)
 PlotPlot("tide Velocity", tide)
 PlotPlot("Apparent Wind", apparentWind)
 PlotPlot("True Wind", trueWind)
-PlotPlot("Geographic Wind", geographicWind)
+PlotPlot("Geographic Wind", geographicWind, True)
 
 plt.show()
 
