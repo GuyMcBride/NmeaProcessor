@@ -63,18 +63,22 @@ def PlotHist(title, vector):
     plt.hist(np.absolute(vector), 100)
 
 def PlotPlot(title, vector, bearing = False):
+#    plt.close(title)
+    plt.figure(title)
+    plt.clf()
+    fig, ax = plt.subplots(2, sharex=True, num=title)
+    fig.suptitle(title)
     angle = np.angle(vector)
     if bearing:
         angle[angle < 0] += 2*np.pi
-    fig, ax = plt.subplots(2, sharex=True, num=title)
-    fig.suptitle(title)
-    unwrappedAngle = np.rad2deg(np.unwrap(angle))
-    ax[0].plot(time, unwrappedAngle)
-    yTicks = ax[0].get_yticks()
-    yTicks %= 360
-#    plt.yticks(yTicks)
-    ax[0].set_yticklabels(list(map(str,yTicks)))
-#    plt.plot(time, np.rad2deg(angle))
+        unwrappedAngle = np.rad2deg(np.unwrap(angle))
+        ax[0].plot(time, unwrappedAngle)
+        yTicks = ax[0].get_yticks()
+        yTicks %= 360
+        ax[0].set_yticklabels(list(map(str,yTicks)))
+    else:
+        ax[0].plot(time, np.rad2deg(angle))
+    # Plot the 'speed'
     ax[1].plot(time, np.absolute(vector))
 
 
