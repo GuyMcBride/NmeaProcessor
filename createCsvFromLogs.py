@@ -35,5 +35,5 @@ for filename in os.listdir(instrument_path):
             df = df.append(new_df)
 
 df.sort_values(by=["timedate"], inplace=True)
-df.to_csv(r"InstrumentData2020.csv")
+df.to_csv(r"InstrumentData2020.csv", index=False)
 pass
