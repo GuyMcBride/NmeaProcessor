@@ -9,6 +9,7 @@ numpy = "==1.19.3"
 plotly = "*"
 pandas = "*"
 cufflinks = "*"
+dash = "*"
 
 [dev-packages]
 pylint = "*"
