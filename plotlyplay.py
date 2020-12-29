@@ -14,6 +14,7 @@ log = logging.getLogger(__name__)
 log.debug("Reading csv...")
 df = pd.read_csv("InstrumentData2020.csv", index_col=0)
 df["datetime"] = pd.to_datetime(df["datetime"])
+df = df.set_index("datetime")
 conversions = {
     "wind": complex,
     "water": complex,
@@ -22,18 +23,10 @@ conversions = {
 }
 df = df.astype(conversions)
 
+df["wind_apparent_raw_speed"] = np.absolute(df.wind)
+df["wind_apparent_raw_angle"] = np.angle(df.wind)
+
 print(df.info())
-
-apparent_wind = pd.DataFrame(
-    data={
-        "datetime": df.datetime,
-        "speed": np.absolute(df.wind),
-        "angle": np.angle(df.wind),
-    }
-)
-
-print(apparent_wind.info())
-pass
 
 app = dash.Dash(__name__)
 
@@ -44,9 +37,9 @@ app.layout = html.Div(
             id="dropdown",
             options=[
                 {"label": x, "value": x}
-                for x in ["Gold", "MediumTurquoise", "LightGreen"]
+                for x in df.index.map(pd.Timestamp.date).unique()
             ],
-            value="Gold",
+            value=df.index.map(pd.Timestamp.date).unique()[0],
             clearable=False,
         ),
         dcc.Graph(id="graph"),
@@ -55,14 +48,13 @@ app.layout = html.Div(
 
 
 @app.callback(Output("graph", "figure"), [Input("dropdown", "value")])
-def display_color(color):
+def display_date(date):
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
-            y=apparent_wind.speed,
-            x=apparent_wind.datetime,
+            y=df.loc[date].wind_apparent_raw_speed,
+            x=df.loc[date].index,
             mode="markers",
-            marker_color=color,
         )
     )
     return fig
