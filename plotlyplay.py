@@ -22,13 +22,27 @@ conversions = {
     "position": complex,
 }
 df = df.astype(conversions)
+df.rename(
+    columns={"depth": "depth_raw", "temperature": "temperature_raw"}, inplace=True
+)
 
-df["wind_apparent_raw_speed"] = np.absolute(df.wind)
-df["wind_apparent_raw_angle"] = np.degrees(np.angle(df.wind))
+df["depth_filtered"] = np.convolve(df["depth_raw"], np.ones(10) / 10, mode="same")
+df["temperature_filtered"] = np.convolve(
+    df["temperature_raw"], np.ones(10) / 10, mode="same"
+)
+
+df["wind_apparent_speed_raw"] = np.absolute(df.wind)
+df["wind_apparent_angle_raw"] = np.degrees(np.angle(df.wind))
+df["wind_filtered"] = np.convolve(df["wind"], np.ones(50) / 50, mode="same")
+df["wind_apparent_speed_filtered"] = np.absolute(df["wind_filtered"])
+df["wind_apparent_angle_filtered"] = np.degrees(np.angle(df["wind_filtered"]))
 
 print(df.info())
 
 app = dash.Dash(__name__)
+
+fields = df.select_dtypes(exclude=[complex]).columns
+fields = fields.map(lambda x: x.rsplit("_", 1)[0]).unique()
 
 app.layout = html.Div(
     [
@@ -45,11 +59,8 @@ app.layout = html.Div(
         html.P("Field:"),
         dcc.Dropdown(
             id="field_dropdown",
-            options=[
-                {"label": x, "value": x}
-                for x in df.select_dtypes(exclude=[complex]).columns
-            ],
-            value=df.select_dtypes(exclude=[complex]).columns[0],
+            options=[{"label": x, "value": x} for x in fields],
+            value=fields[0],
             clearable=False,
         ),
         dcc.Graph(id="graph"),
@@ -65,9 +76,16 @@ def display_date(date, field):
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
-            y=df.loc[date][field],
+            y=df.loc[date][field + "_raw"],
             x=df.loc[date].index,
             mode="markers",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            y=df.loc[date][field + "_filtered"],
+            x=df.loc[date].index,
+            mode="lines",
         )
     )
     return fig
